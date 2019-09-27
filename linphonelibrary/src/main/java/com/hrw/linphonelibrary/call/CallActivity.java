@@ -23,7 +23,6 @@ import org.linphone.core.Address;
 import org.linphone.core.Call;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
-import org.linphone.core.VideoActivationPolicy;
 import org.linphone.core.VideoDefinition;
 
 /**
@@ -57,24 +56,24 @@ public class CallActivity extends Activity implements OnClickListener {
     protected String mCallNumber;
     protected CoreListenerStub mListenerStub = new CoreListenerStub() {
         @Override
-        public void onCallStateChanged(Core lc, Call call, Call.State state, String message) {
+        public void onCallStateChanged(Core core, Call call, Call.State state, String message) {
             Address address = call.getRemoteAddress();
-            Log.d("MineCall", message + "--" + state.toInt() + "--" + address.getDisplayName() + "--" + address.getUsername());
+            Log.d("MineCall", message + "--" + state.toInt() + "--" + core.videoEnabled() + "--" + address.getDisplayName() + "--" + address.getUsername());
             if (state == Call.State.IncomingReceived) {
-                tvCallNumber.setText(lc.getCurrentCallRemoteAddress().asString());
+                tvCallNumber.setText(core.getCurrentCallRemoteAddress().asString());
             } else if (state == Call.State.Connected) {//电话接通
                 ttvComputerTime.setVisibility(View.VISIBLE);
                 tvWaitConnect.setVisibility(View.GONE);
             } else if (state == Call.State.StreamsRunning) {//正在通话中
                 ttvComputerTime.startTime();
                 tvSwitchVoiceVideo.setSelected(mCallHelper.videoEnabled());
-//                if (mCallHelper.videoEnabled()) {
-//                    ttvMyVideo.setVisibility(View.VISIBLE);
-//                    ttvOtherVideo.setVisibility(View.VISIBLE);
-//                } else {
-//                    ttvMyVideo.setVisibility(View.GONE);
-//                    ttvOtherVideo.setVisibility(View.GONE);
-//                }
+                if (mCallHelper.videoEnabled()) {
+                    ttvMyVideo.setVisibility(View.VISIBLE);
+                    ttvOtherVideo.setVisibility(View.VISIBLE);
+                } else {
+                    ttvMyVideo.setVisibility(View.GONE);
+                    ttvOtherVideo.setVisibility(View.GONE);
+                }
             } else if (state == Call.State.End) {
                 System.out.println("通话结束");
                 finish();
@@ -94,7 +93,7 @@ public class CallActivity extends Activity implements OnClickListener {
         tvSwitchVoiceVideo = (TextView) findViewById(R.id.tv_switch_voice_video);
         tvMute = (TextView) findViewById(R.id.tv_mute);
         tvGreaterVoice = (TextView) findViewById(R.id.tv_greater_voice);
-        tvGreaterVoice.setSelected(mCallHelper.isSpeakerphoneOn());
+//        tvGreaterVoice.setSelected(mCallHelper.isSpeakerphoneOn());
 
         ttvComputerTime = (TimeTextView) findViewById(R.id.ttv_computer_time);
         tvWaitConnect = (TextView) findViewById(R.id.tv_wait_accept);
@@ -129,11 +128,11 @@ public class CallActivity extends Activity implements OnClickListener {
         mCore.setNativePreviewWindowId(ttvMyVideo);
         mCallHelper.addListener(mListenerStub);
 
-        lookupCurrentCall();
+//        lookupCurrentCall();
         if (LinPhoneHelper.getInstance() != null
                 && mCall != null
                 && mCall.getRemoteParams() != null
-                && shouldAutomaticallyAcceptVideoRequests()
+                && LinPhoneHelper.getInstance().getCallSetting().shouldAutomaticallyAcceptVideoRequests()
                 && mCall.getRemoteParams().videoEnabled()) {
             ivAcceptCall.setImageResource(R.drawable.call_video_start);
         }
@@ -144,19 +143,12 @@ public class CallActivity extends Activity implements OnClickListener {
             for (Call call : LinPhoneHelper.getInstance().getCore().getCalls()) {
                 if (Call.State.IncomingReceived == call.getState() || Call.State.IncomingEarlyMedia == call.getState()) {
                     mCall = call;
-                    mCore.enableVideoCapture(true);
-                    mCore.enableVideoDisplay(true);
                     break;
                 }
             }
         }
     }
 
-    public boolean shouldAutomaticallyAcceptVideoRequests() {
-        if (mCore == null) return false;
-        VideoActivationPolicy vap = mCore.getVideoActivationPolicy();
-        return vap.getAutomaticallyAccept();
-    }
 
     @Override
     protected void onResume() {

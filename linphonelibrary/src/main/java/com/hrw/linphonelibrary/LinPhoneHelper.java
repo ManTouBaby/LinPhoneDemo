@@ -6,6 +6,7 @@ import android.os.Handler;
 
 import com.hrw.linphonelibrary.call.CallHelper;
 import com.hrw.linphonelibrary.call.CallOutGoingActivity;
+import com.hrw.linphonelibrary.call.CallSetting;
 import com.hrw.linphonelibrary.call.ParamTag;
 import com.hrw.linphonelibrary.config.AndroidAudioManager;
 import com.hrw.linphonelibrary.listener.OnLoginListener;
@@ -28,12 +29,13 @@ import static java.lang.Thread.sleep;
  * @desc:
  */
 public class LinPhoneHelper {
+    private AndroidAudioManager mAndroidAudioManager;
     private static LinPhoneHelper mLinPhoneHelper;
     private AccountCreator mAccountCreator;
-    private AndroidAudioManager mAndroidAudioManager;
     private Core mCore;
     private Handler mHandler;
     private CallHelper mCallHelper;
+    private CallSetting mCallSetting;
 
     private CoreListenerStub mCoreListener;
     private OnLoginListener mOnLoginListener;
@@ -43,7 +45,6 @@ public class LinPhoneHelper {
 
     private LinPhoneHelper(final Context context) {
         mHandler = new Handler();
-        mCallHelper = new CallHelper();
         mAndroidAudioManager = new AndroidAudioManager(context);
         if (!LinPhoneService.isReady()) {
             context.startService(new Intent(context, LinPhoneService.class));
@@ -63,9 +64,7 @@ public class LinPhoneHelper {
                             new Runnable() {
                                 @Override
                                 public void run() {
-                                    mAccountCreator = LinPhoneService.getCore().createAccountCreator(null);
-                                    mCore = LinPhoneService.getCore();
-                                    mCore.addListener(mCoreListener);
+                                    dealAfterCall();
                                 }
                             });
                 }
@@ -98,8 +97,25 @@ public class LinPhoneHelper {
 
     }
 
+    //处理成功获取Core后数据
+    private void dealAfterCall() {
+        mAccountCreator = LinPhoneService.getCore().createAccountCreator(null);
+        mCore = LinPhoneService.getCore();
+        mCore.addListener(mCoreListener);
+
+        mCallHelper = new CallHelper();
+        mCallSetting = new CallSetting(mCore);
+
+//        mCallSetting.enableVideo(true);
+//        mCallSetting.setAutomaticallyAcceptVideoRequests(true);
+    }
+
     public CallHelper getCallHelper() {
         return mCallHelper;
+    }
+
+    public CallSetting getCallSetting() {
+        return mCallSetting;
     }
 
     /**
@@ -169,14 +185,6 @@ public class LinPhoneHelper {
      *
      */
     public void login(String name, String password, String address) {
-/*        AuthInfo[] infos = mCore.getAuthInfoList();
-        ProxyConfig[] config = mCore.getProxyConfigList();
-        if (config != null && config.length > 0) {
-            for (ProxyConfig proxyConfig : config) {
-                mCore.removeAuthInfo(proxyConfig.findAuthInfo());
-                mCore.removeProxyConfig(proxyConfig);
-            }
-        }*/
         mCore.clearProxyConfig();
         mCore.clearAllAuthInfo();
 

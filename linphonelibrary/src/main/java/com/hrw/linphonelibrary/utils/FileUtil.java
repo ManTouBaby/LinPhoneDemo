@@ -25,8 +25,7 @@ public class FileUtil {
     public static String getCallRecordingFilename(Context context, Address address) {
         String fileName = getRecordingsDirectory(context) + "/";
 
-        String name =
-                address.getDisplayName() == null ? address.getUsername() : address.getDisplayName();
+        String name = address.getDisplayName() == null ? address.getUsername() : address.getDisplayName();
         fileName += name + "_";
 
         DateFormat format = new SimpleDateFormat("dd-MM-yyyy-HH-mm-ss");
@@ -36,23 +35,13 @@ public class FileUtil {
     }
 
     public static String getRecordingsDirectory(Context mContext) {
-        String recordingsDir =
-                Environment.getExternalStorageDirectory()
-                        + "/"
-                        + mContext.getString(R.string.app_name)
-                        + "/recordings";
+        String recordingsDir = Environment.getExternalStorageDirectory() + "/" + mContext.getString(R.string.app_name) + "/recordings";
         File file = new File(recordingsDir);
         if (!file.isDirectory() || !file.exists()) {
-            Log.w(
-                    "[File Utils] Directory "
-                            + file
-                            + " doesn't seem to exists yet, let's create it");
+            Log.w("[File Utils] Directory " + file + " doesn't seem to exists yet, let's create it");
             boolean result = file.mkdirs();
             if (!result) {
-                Log.e(
-                        "[File Utils] Couldn't create recordings directory "
-                                + file.getAbsolutePath()
-                                + ", using external storage dir instead");
+                Log.e("[File Utils] Couldn't create recordings directory " + file.getAbsolutePath() + ", using external storage dir instead");
                 return Environment.getExternalStorageDirectory().getAbsolutePath();
             }
         }

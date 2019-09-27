@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
+import android.widget.Toast;
 
 import com.hrw.linphonelibrary.LinPhoneHelper;
 import com.hrw.linphonelibrary.config.AndroidAudioManager;
@@ -15,8 +16,8 @@ import org.linphone.core.CallParams;
 import org.linphone.core.Core;
 import org.linphone.core.CoreListenerStub;
 import org.linphone.core.MediaEncryption;
-import org.linphone.core.VideoActivationPolicy;
 import org.linphone.core.tools.Log;
+import org.linphone.mediastream.Version;
 
 /**
  * @version 1.0.0
@@ -43,6 +44,36 @@ public class CallHelper {
         startVoiceCall(callAddress, callName, null);
     }
 
+    /**
+     * 发起视屏通话
+     */
+    public void startVideoCall(Context mContext, String to, String displayName) {
+        if (to == null) return;
+
+        Core core = LinPhoneHelper.getInstance().getCore();
+        Address address;
+        address = core.interpretUrl(to); // InterpretUrl does normalizePhoneNumber
+        if (address == null) {
+            Log.e("[Call Manager] Couldn't convert to String to Address : " + to);
+            return;
+        }
+        address.setDisplayName(displayName);
+
+        if (core.isNetworkReachable()) {
+            if (Version.isVideoCapable()) {
+                boolean prefVideoEnable = isVideoEnabled();
+                boolean prefInitiateWithVideo = LinPhoneHelper.getInstance().getCallSetting().shouldInitiateVideoCall();
+                inviteAddress(address, prefVideoEnable && prefInitiateWithVideo, true);
+            } else {
+                inviteAddress(address, false, true);
+            }
+        } else {
+            Toast.makeText(mContext, "网络不可用", Toast.LENGTH_LONG).show();
+            Log.e("[Call Manager] Error: 网络不可用");
+        }
+    }
+
+
     public void addListener(CoreListenerStub listenerStub) {
         Core core = LinPhoneHelper.getInstance().getCore();
         if (listenerStub != null) core.addListener(listenerStub);
@@ -51,18 +82,6 @@ public class CallHelper {
     public void removeListener(CoreListenerStub listenerStub) {
         Core core = LinPhoneHelper.getInstance().getCore();
         if (listenerStub != null) core.removeListener(listenerStub);
-    }
-
-    /**
-     * 发起视屏通话
-     */
-    public void startVideoCall(String to, String displayName) {
-        Core core = LinPhoneHelper.getInstance().getCore();
-        Address address = core.interpretUrl(to);
-        address.setDisplayName(displayName);
-        CallParams params = core.createCallParams(null);
-        params.enableVideo(true);
-        core.inviteAddressWithParams(address, params);
     }
 
     public static boolean isHighBandwidthConnection(Context context) {
@@ -89,10 +108,6 @@ public class CallHelper {
         return LinPhoneHelper.getInstance().getCore().videoSupported() && LinPhoneHelper.getInstance().getCore().videoEnabled();
     }
 
-    public boolean shouldInitiateVideoCall() {
-        if (LinPhoneHelper.getInstance().getCore() == null) return false;
-        return LinPhoneHelper.getInstance().getCore().getVideoActivationPolicy().getAutomaticallyInitiate();
-    }
 
     public void inviteAddress(Address address, boolean videoEnabled, boolean lowBandwidth) {
         inviteAddress(address, videoEnabled, lowBandwidth, false);
@@ -125,12 +140,6 @@ public class CallHelper {
         core.inviteAddressWithParams(address, params);
     }
 
-    public void setInitiateVideoCall(boolean initiate) {
-        if (LinPhoneHelper.getInstance().getCore() == null) return;
-        VideoActivationPolicy vap = LinPhoneHelper.getInstance().getCore().getVideoActivationPolicy();
-        vap.setAutomaticallyInitiate(initiate);
-        LinPhoneHelper.getInstance().getCore().setVideoActivationPolicy(vap);
-    }
 
     /**
      * 语音通话切换到视屏通话
@@ -253,12 +262,9 @@ public class CallHelper {
      */
     public boolean acceptCall(Context context, Call call) {
         if (call == null) return false;
-
         Core core = LinPhoneHelper.getInstance().getCore();
         CallParams params = core.createCallParams(call);
-
 //        boolean isLowBandwidthConnection = !LinphoneUtils.isHighBandwidthConnection(LinphoneService.instance());
-
         if (params != null) {
             params.enableLowBandwidth(true);
             params.setRecordFile(FileUtil.getCallRecordingFilename(context, call.getRemoteAddress()));

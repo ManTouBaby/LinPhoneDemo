@@ -5,6 +5,7 @@
     android:background="@drawable/ic_call_bg"
     android:orientation="vertical">
 
+
     <TextureView
         android:id="@+id/ttv_other_video"
         android:layout_width="match_parent"
