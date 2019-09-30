@@ -157,6 +157,39 @@ public class CallHelper {
         }
     }
 
+    /**
+     * 切换前后摄像头
+     */
+    public void switchCamera() {
+        Core core = LinPhoneHelper.getInstance().getCore();
+        try {
+            String currentDevice = core.getVideoDevice();
+            String[] devices = core.getVideoDevicesList();
+            int index = 0;
+            for (String d : devices) {
+                if (d.equals(currentDevice)) {
+                    break;
+                }
+                index++;
+            }
+
+            String newDevice;
+            if (index == 1) newDevice = devices[0];
+            else if (devices.length > 1) newDevice = devices[1];
+            else newDevice = devices[index];
+            core.setVideoDevice(newDevice);
+
+            Call call = core.getCurrentCall();
+            if (call == null) {
+                Log.w("[Call Manager] Trying to switch camera while not in call");
+                return;
+            }
+            call.update(null);
+        } catch (ArithmeticException ae) {
+            Log.e("[Call Manager] [Video] Cannot switch camera: no camera");
+        }
+    }
+
     public boolean videoEnabled() {
         Call call = LinPhoneHelper.getInstance().getCore().getCurrentCall();
         return call.getCurrentParams().videoEnabled();

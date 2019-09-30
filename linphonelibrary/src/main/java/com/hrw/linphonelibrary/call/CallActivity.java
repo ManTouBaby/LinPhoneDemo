@@ -36,6 +36,8 @@ public class CallActivity extends Activity implements OnClickListener {
     protected Core mCore;
     protected Call mCall;
 
+    ImageView ivSwitchCamera;
+
     protected TextureView ttvMyVideo;
     protected TextureView ttvOtherVideo;
 
@@ -67,13 +69,15 @@ public class CallActivity extends Activity implements OnClickListener {
             } else if (state == Call.State.StreamsRunning) {//正在通话中
                 ttvComputerTime.startTime();
                 tvSwitchVoiceVideo.setSelected(mCallHelper.videoEnabled());
-//                if (mCallHelper.videoEnabled()) {
-//                    ttvMyVideo.setVisibility(View.VISIBLE);
-//                    ttvOtherVideo.setVisibility(View.VISIBLE);
-//                } else {
-//                    ttvMyVideo.setVisibility(View.GONE);
-//                    ttvOtherVideo.setVisibility(View.GONE);
-//                }
+                if (mCallHelper.videoEnabled()) {
+                    ttvMyVideo.setVisibility(View.VISIBLE);
+                    ttvOtherVideo.setVisibility(View.VISIBLE);
+                    ivSwitchCamera.setVisibility(View.VISIBLE);
+                } else {
+                    ttvMyVideo.setVisibility(View.GONE);
+                    ttvOtherVideo.setVisibility(View.GONE);
+                    ivSwitchCamera.setVisibility(View.GONE);
+                }
             } else if (state == Call.State.End) {
                 System.out.println("通话结束");
                 finish();
@@ -83,6 +87,8 @@ public class CallActivity extends Activity implements OnClickListener {
 
 
     private void initView() {
+        ivSwitchCamera = (ImageView) findViewById(R.id.iv_switch_camera);
+
         ttvMyVideo = (TextureView) findViewById(R.id.ttv_my_video);
         ttvOtherVideo = (TextureView) findViewById(R.id.ttv_other_video);
 
@@ -98,6 +104,8 @@ public class CallActivity extends Activity implements OnClickListener {
         tvWaitConnect = (TextView) findViewById(R.id.tv_wait_accept);
         tvCallNumber = (TextView) findViewById(R.id.tv_call_number);
         tvCallName = (TextView) findViewById(R.id.tv_call_name);
+
+        ivSwitchCamera.setOnClickListener(this);
 
         tvCancelCall.setOnClickListener(this);
         tvAcceptCall.setOnClickListener(this);
@@ -222,6 +230,9 @@ public class CallActivity extends Activity implements OnClickListener {
             System.out.println("扩音操作:" + mCallHelper.isSpeakerphoneOn());
             mCallHelper.toggleSpeaker();
             tvGreaterVoice.setSelected(mCallHelper.isSpeakerphoneOn());
+        } else if (i == R.id.iv_switch_camera) {
+            System.out.println("前后摄像头切换");
+            mCallHelper.switchCamera();
         }
     }
 }
