@@ -30,9 +30,8 @@ public class CallHelper {
     /**
      * 发起语音通话
      */
-    public void startVoiceCall(String callAddress, String callName, CoreListenerStub listenerStub) {
+    public void startVoiceCall(String callAddress, String callName) {
         Core core = LinPhoneHelper.getInstance().getCore();
-        if (listenerStub != null) core.addListener(listenerStub);
         Address address = core.interpretUrl(callAddress);
         address.setDisplayName(callName);
         CallParams params = core.createCallParams(null);
@@ -40,37 +39,16 @@ public class CallHelper {
         core.inviteAddressWithParams(address, params);
     }
 
-    public void startVoiceCall(String callAddress, String callName) {
-        startVoiceCall(callAddress, callName, null);
-    }
-
     /**
      * 发起视屏通话
      */
-    public void startVideoCall(Context mContext, String to, String displayName) {
-        if (to == null) return;
-
+    public void startVideoCall(String callAddress, String callName) {
         Core core = LinPhoneHelper.getInstance().getCore();
-        Address address;
-        address = core.interpretUrl(to); // InterpretUrl does normalizePhoneNumber
-        if (address == null) {
-            Log.e("[Call Manager] Couldn't convert to String to Address : " + to);
-            return;
-        }
-        address.setDisplayName(displayName);
-
-        if (core.isNetworkReachable()) {
-            if (Version.isVideoCapable()) {
-                boolean prefVideoEnable = isVideoEnabled();
-                boolean prefInitiateWithVideo = LinPhoneHelper.getInstance().getCallSetting().shouldInitiateVideoCall();
-                inviteAddress(address, prefVideoEnable && prefInitiateWithVideo, true);
-            } else {
-                inviteAddress(address, false, true);
-            }
-        } else {
-            Toast.makeText(mContext, "网络不可用", Toast.LENGTH_LONG).show();
-            Log.e("[Call Manager] Error: 网络不可用");
-        }
+        Address address = core.interpretUrl(callAddress);
+        address.setDisplayName(callName);
+        CallParams params = core.createCallParams(null);
+        params.enableVideo(true);
+        core.inviteAddressWithParams(address, params);
     }
 
 
@@ -108,6 +86,31 @@ public class CallHelper {
         return LinPhoneHelper.getInstance().getCore().videoSupported() && LinPhoneHelper.getInstance().getCore().videoEnabled();
     }
 
+    public void startVideoCall(Context mContext, String to, String displayName) {
+        if (to == null) return;
+
+        Core core = LinPhoneHelper.getInstance().getCore();
+        Address address;
+        address = core.interpretUrl(to); // InterpretUrl does normalizePhoneNumber
+        if (address == null) {
+            Log.e("[Call Manager] Couldn't convert to String to Address : " + to);
+            return;
+        }
+        address.setDisplayName(displayName);
+
+        if (core.isNetworkReachable()) {
+            if (Version.isVideoCapable()) {
+                boolean prefVideoEnable = isVideoEnabled();
+                boolean prefInitiateWithVideo = LinPhoneHelper.getInstance().getCallSetting().shouldInitiateVideoCall();
+                inviteAddress(address, prefVideoEnable && prefInitiateWithVideo, true);
+            } else {
+                inviteAddress(address, false, true);
+            }
+        } else {
+            Toast.makeText(mContext, "网络不可用", Toast.LENGTH_LONG).show();
+            Log.e("[Call Manager] Error: 网络不可用");
+        }
+    }
 
     public void inviteAddress(Address address, boolean videoEnabled, boolean lowBandwidth) {
         inviteAddress(address, videoEnabled, lowBandwidth, false);
@@ -264,9 +267,8 @@ public class CallHelper {
         if (call == null) return false;
         Core core = LinPhoneHelper.getInstance().getCore();
         CallParams params = core.createCallParams(call);
-//        boolean isLowBandwidthConnection = !LinphoneUtils.isHighBandwidthConnection(LinphoneService.instance());
         if (params != null) {
-            params.enableLowBandwidth(true);
+            params.enableLowBandwidth(false);
             params.setRecordFile(FileUtil.getCallRecordingFilename(context, call.getRemoteAddress()));
         } else {
             Log.e("[Call Manager] Could not create call params for call");

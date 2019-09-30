@@ -67,13 +67,13 @@ public class CallActivity extends Activity implements OnClickListener {
             } else if (state == Call.State.StreamsRunning) {//正在通话中
                 ttvComputerTime.startTime();
                 tvSwitchVoiceVideo.setSelected(mCallHelper.videoEnabled());
-                if (mCallHelper.videoEnabled()) {
-                    ttvMyVideo.setVisibility(View.VISIBLE);
-                    ttvOtherVideo.setVisibility(View.VISIBLE);
-                } else {
-                    ttvMyVideo.setVisibility(View.GONE);
-                    ttvOtherVideo.setVisibility(View.GONE);
-                }
+//                if (mCallHelper.videoEnabled()) {
+//                    ttvMyVideo.setVisibility(View.VISIBLE);
+//                    ttvOtherVideo.setVisibility(View.VISIBLE);
+//                } else {
+//                    ttvMyVideo.setVisibility(View.GONE);
+//                    ttvOtherVideo.setVisibility(View.GONE);
+//                }
             } else if (state == Call.State.End) {
                 System.out.println("通话结束");
                 finish();
@@ -93,7 +93,6 @@ public class CallActivity extends Activity implements OnClickListener {
         tvSwitchVoiceVideo = (TextView) findViewById(R.id.tv_switch_voice_video);
         tvMute = (TextView) findViewById(R.id.tv_mute);
         tvGreaterVoice = (TextView) findViewById(R.id.tv_greater_voice);
-//        tvGreaterVoice.setSelected(mCallHelper.isSpeakerphoneOn());
 
         ttvComputerTime = (TimeTextView) findViewById(R.id.ttv_computer_time);
         tvWaitConnect = (TextView) findViewById(R.id.tv_wait_accept);
@@ -128,7 +127,7 @@ public class CallActivity extends Activity implements OnClickListener {
         mCore.setNativePreviewWindowId(ttvMyVideo);
         mCallHelper.addListener(mListenerStub);
 
-//        lookupCurrentCall();
+        lookupCurrentCall();
         if (LinPhoneHelper.getInstance() != null
                 && mCall != null
                 && mCall.getRemoteParams() != null
@@ -158,10 +157,10 @@ public class CallActivity extends Activity implements OnClickListener {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         Call call = LinPhoneHelper.getInstance().getCore().getCurrentCall();
         if (call != null) call.terminate();
         mCallHelper.removeListener(mListenerStub);
+        super.onDestroy();
     }
 
     private void resizePreview() {

@@ -129,7 +129,7 @@ public class LinPhoneService extends Service {
             }
         };
         mTimer = new Timer("Linphone scheduler");
-        mTimer.schedule(lTask, 0, 20);
+        mTimer.schedule(lTask, 0, 1000);
 
         return START_STICKY;
     }

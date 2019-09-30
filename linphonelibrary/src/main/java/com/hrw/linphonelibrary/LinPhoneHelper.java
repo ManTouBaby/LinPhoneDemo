@@ -106,8 +106,8 @@ public class LinPhoneHelper {
         mCallHelper = new CallHelper();
         mCallSetting = new CallSetting(mCore);
 
-//        mCallSetting.enableVideo(true);
-//        mCallSetting.setAutomaticallyAcceptVideoRequests(true);
+        mCallSetting.enableVideo(true);
+        mCallSetting.setAutomaticallyAcceptVideoRequests(true);
     }
 
     public CallHelper getCallHelper() {

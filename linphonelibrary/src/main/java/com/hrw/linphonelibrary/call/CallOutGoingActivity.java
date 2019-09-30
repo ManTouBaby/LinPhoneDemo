@@ -26,7 +26,7 @@ public class CallOutGoingActivity extends CallActivity {
         if (callType == LinPhoneHelper.TYPE_VOICE) {
             mCallHelper.startVoiceCall(mCallNumber, mCallName);
         } else if (callType == LinPhoneHelper.TYPE_VIDEO) {
-            mCallHelper.startVideoCall(this, mCallNumber, mCallName);
+            mCallHelper.startVideoCall(mCallNumber, mCallName);
         }
     }
 
